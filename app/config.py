@@ -1,5 +1,6 @@
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from urllib.parse import urlsplit
 
 
 class Settings(BaseSettings):
@@ -13,15 +14,36 @@ class Settings(BaseSettings):
     app_name: str = "PitchFlow API"
     frontend_origin: str = "http://localhost:4200"
     database_url: str = Field(default="")
-    supabase_jwt_secret: str = ""
-    supabase_jwt_algorithm: str = "HS256"
+    supabase_url: str = ""
     supabase_jwt_audience: str = "authenticated"
     supabase_jwt_issuer: str = ""
 
     def get_database_url(self) -> str:
         if not self.database_url:
             raise ValueError("DATABASE_URL is required")
-        return self.database_url
+
+        normalized_url = self.database_url.strip()
+        parsed = urlsplit(normalized_url)
+        if parsed.netloc.count("@") > 1:
+            raise ValueError(
+                "DATABASE_URL appears malformed: URL credentials contain unescaped "
+                "special characters. URL-encode password characters like '@' as '%40'."
+            )
+
+        if normalized_url.startswith("postgresql://"):
+            normalized_url = normalized_url.replace("postgresql://", "postgresql+psycopg://", 1)
+
+        return normalized_url
+
+    def get_supabase_url(self) -> str:
+        if not self.supabase_url:
+            raise ValueError("SUPABASE_URL is required for JWKS token verification")
+        return self.supabase_url.rstrip("/")
+
+    def get_supabase_issuer(self) -> str:
+        if self.supabase_jwt_issuer:
+            return self.supabase_jwt_issuer.rstrip("/")
+        return f"{self.get_supabase_url()}/auth/v1"
 
 
 settings = Settings()

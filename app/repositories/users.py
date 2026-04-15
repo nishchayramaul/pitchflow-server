@@ -22,6 +22,25 @@ def get_user_by_id(db: Session, user_id: str) -> Optional[dict[str, Any]]:
     )
 
 
+def upsert_user_from_auth_claims(db: Session, user_id: str, email: str) -> None:
+    db.execute(
+        text(
+            """
+            INSERT INTO public.users (id, email, slug)
+            VALUES (:id, :email, :slug)
+            ON CONFLICT (id) DO UPDATE
+            SET email = EXCLUDED.email
+            """
+        ),
+        {
+            "id": user_id,
+            "email": email,
+            "slug": f"u-{user_id}",
+        },
+    )
+    db.commit()
+
+
 def slug_exists_for_other_user(db: Session, slug: str, user_id: str) -> bool:
     row = db.execute(
         text("SELECT id FROM public.users WHERE slug = :slug LIMIT 1"),
