@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Any, Optional
 
 from pydantic import BaseModel, Field
 
@@ -15,3 +15,15 @@ class UserProfileResponse(BaseModel):
     display_name: Optional[str] = None
     slug: Optional[str] = None
     avatar_url: Optional[str] = None
+    tier: Optional[str] = None
+    role: Optional[str] = None
+    form_schema: Optional[list] = None
+
+
+class FormSchemaUpdateRequest(BaseModel):
+    form_schema: list[Any]
+
+
+class PublicPitchFormResponse(BaseModel):
+    display_name: str
+    form_schema: list[Any]

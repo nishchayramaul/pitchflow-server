@@ -1,8 +1,8 @@
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Any
 
 from sqlalchemy import DateTime, ForeignKey, Index, String, Text, func
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
@@ -23,6 +23,9 @@ class User(Base):
     display_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     slug: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
     avatar_url: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    tier: Mapped[Optional[str]] = mapped_column(String(50), server_default="free", nullable=True)
+    role: Mapped[Optional[str]] = mapped_column(String(50), server_default="user", nullable=True)
+    form_schema: Mapped[Optional[Any]] = mapped_column(JSONB, server_default='[]', nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

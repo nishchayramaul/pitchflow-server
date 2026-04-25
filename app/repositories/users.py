@@ -9,7 +9,7 @@ def get_user_by_id(db: Session, user_id: str) -> Optional[dict[str, Any]]:
         db.execute(
             text(
                 """
-                SELECT id, email, display_name, slug, avatar_url, created_at
+                SELECT id, email, display_name, slug, avatar_url, tier, role, form_schema, created_at
                 FROM public.users
                 WHERE id = :id
                 LIMIT 1
@@ -78,3 +78,36 @@ def is_slug_available(db: Session, slug: str) -> bool:
         {"slug": slug},
     ).first()
     return result is None
+
+
+def get_user_by_slug(db: Session, slug: str) -> Optional[dict[str, Any]]:
+    return (
+        db.execute(
+            text(
+                """
+                SELECT display_name, form_schema
+                FROM public.users
+                WHERE slug = :slug
+                LIMIT 1
+                """
+            ),
+            {"slug": slug},
+        )
+        .mappings()
+        .first()
+    )
+
+
+def update_form_schema(db: Session, user_id: str, form_schema: list) -> None:
+    import json
+    db.execute(
+        text(
+            """
+            UPDATE public.users
+            SET form_schema = :form_schema
+            WHERE id = :id
+            """
+        ),
+        {"form_schema": json.dumps(form_schema), "id": user_id},
+    )
+    db.commit()

@@ -3,11 +3,12 @@ from sqlalchemy.orm import Session
 from typing import Any
 
 from app.db import get_db
-from app.deps.auth import get_current_user
-from app.schemas.profile import UpdateProfileRequest, UserProfileResponse
+from app.deps.auth import get_current_user, get_current_user_full
+from app.schemas.profile import FormSchemaUpdateRequest, UpdateProfileRequest, UserProfileResponse
 from app.services.onboarding_service import (
     check_slug_availability,
     get_current_profile,
+    save_form_schema,
     update_user_profile,
 )
 
@@ -34,3 +35,12 @@ def update_profile(
     db: Session = Depends(get_db),
 ) -> dict[str, str]:
     return update_user_profile(db, current_user["id"], payload)
+
+
+@router.patch("/form-schema")
+def update_form_schema(
+    payload: FormSchemaUpdateRequest,
+    current_user: dict[str, Any] = Depends(get_current_user_full),
+    db: Session = Depends(get_db),
+) -> dict[str, str]:
+    return save_form_schema(db, current_user["id"], current_user["role"], payload)

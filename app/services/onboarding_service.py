@@ -5,11 +5,18 @@ from sqlalchemy.orm import Session
 
 from app.repositories.users import (
     get_user_by_id,
+    get_user_by_slug,
     is_slug_available,
     slug_exists_for_other_user,
+    update_form_schema,
     update_profile,
 )
-from app.schemas.profile import UpdateProfileRequest, UserProfileResponse
+from app.schemas.profile import (
+    FormSchemaUpdateRequest,
+    PublicPitchFormResponse,
+    UpdateProfileRequest,
+    UserProfileResponse,
+)
 
 SLUG_PATTERN = re.compile(r"^[a-z0-9-]{3,32}$")
 
@@ -41,6 +48,25 @@ def update_user_profile(
     return {"message": f"Link generated: pitchflow.in/{payload.slug}"}
 
 
+def get_public_pitch_form(db: Session, slug: str) -> PublicPitchFormResponse:
+    user = get_user_by_slug(db, slug)
+    if not user:
+        raise HTTPException(status_code=404, detail="Creator not found")
+    return PublicPitchFormResponse(
+        display_name=user["display_name"] or slug,
+        form_schema=user["form_schema"] or [],
+    )
+
+
+def save_form_schema(
+    db: Session, user_id: str, user_role: str, payload: FormSchemaUpdateRequest
+) -> dict[str, str]:
+    if user_role == "team_member":
+        raise HTTPException(status_code=403, detail="Team members cannot modify the form schema")
+    update_form_schema(db, user_id, payload.form_schema)
+    return {"message": "Form schema saved"}
+
+
 def get_current_profile(db: Session, user_id: str) -> UserProfileResponse:
     user = get_user_by_id(db, user_id)
     if not user:
@@ -52,4 +78,7 @@ def get_current_profile(db: Session, user_id: str) -> UserProfileResponse:
         display_name=user.get("display_name"),
         slug=user.get("slug"),
         avatar_url=user.get("avatar_url"),
+        tier=user.get("tier"),
+        role=user.get("role"),
+        form_schema=user.get("form_schema"),
     )

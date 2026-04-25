@@ -73,3 +73,17 @@ def get_current_user(
         "email": str(user["email"]),
         "claims": payload,
     }
+
+
+def get_current_user_full(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(bearer_scheme),
+    db: Session = Depends(get_db),
+) -> dict[str, Any]:
+    """Like get_current_user but also exposes role and tier for RBAC/tier checks."""
+    base = get_current_user(credentials, db)
+    user = get_user_by_id(db, base["id"])
+    return {
+        **base,
+        "role": user.get("role") if user else None,
+        "tier": user.get("tier") if user else None,
+    }
