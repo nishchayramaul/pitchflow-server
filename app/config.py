@@ -12,7 +12,10 @@ class Settings(BaseSettings):
     )
 
     app_name: str = "PitchFlow API"
-    frontend_origin: str = "http://localhost:4200"
+    frontend_origins: str = "http://localhost:4200"
+
+    def get_allowed_origins(self) -> list[str]:
+        return [o.strip() for o in self.frontend_origins.split(",") if o.strip()]
     database_url: str = Field(default="")
     supabase_url: str = ""
     supabase_jwt_audience: str = "authenticated"

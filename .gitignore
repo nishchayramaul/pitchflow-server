@@ -23,3 +23,13 @@ credentials/
 
 # OS/editor noise
 .DS_Store
+
+# Dependencies
+node_modules/
+# Added by code-review-graph
+.code-review-graph/
+
+# Local AI/tooling files
+.claude/
+.mcp.json
+CLAUDE.md

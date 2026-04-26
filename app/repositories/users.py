@@ -104,7 +104,7 @@ def update_form_schema(db: Session, user_id: str, form_schema: list) -> None:
         text(
             """
             UPDATE public.users
-            SET form_schema = :form_schema
+            SET form_schema = CAST(:form_schema AS jsonb)
             WHERE id = :id
             """
         ),
