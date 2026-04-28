@@ -8,11 +8,15 @@ from app.repositories.users import (
     get_user_by_slug,
     is_slug_available,
     slug_exists_for_other_user,
+    update_currency,
     update_form_schema,
+    update_minimum_budget,
     update_profile,
 )
 from app.schemas.profile import (
+    CurrencyUpdateRequest,
     FormSchemaUpdateRequest,
+    MinimumBudgetUpdateRequest,
     PublicPitchFormResponse,
     UpdateProfileRequest,
     UserProfileResponse,
@@ -67,6 +71,20 @@ def save_form_schema(
     return {"message": "Form schema saved"}
 
 
+def save_minimum_budget(
+    db: Session, user_id: str, payload: MinimumBudgetUpdateRequest
+) -> dict[str, str]:
+    update_minimum_budget(db, user_id, payload.minimum_budget)
+    return {"message": "Minimum budget saved"}
+
+
+def save_currency(
+    db: Session, user_id: str, payload: CurrencyUpdateRequest
+) -> dict[str, str]:
+    update_currency(db, user_id, payload.currency)
+    return {"message": "Currency saved"}
+
+
 def get_current_profile(db: Session, user_id: str) -> UserProfileResponse:
     user = get_user_by_id(db, user_id)
     if not user:
@@ -81,4 +99,6 @@ def get_current_profile(db: Session, user_id: str) -> UserProfileResponse:
         tier=user.get("tier"),
         role=user.get("role"),
         form_schema=user.get("form_schema"),
+        minimum_budget=user.get("minimum_budget"),
+        currency=user.get("currency"),
     )

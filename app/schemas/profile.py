@@ -18,10 +18,20 @@ class UserProfileResponse(BaseModel):
     tier: Optional[str] = None
     role: Optional[str] = None
     form_schema: Optional[list] = None
+    minimum_budget: Optional[int] = None
+    currency: Optional[str] = None
 
 
 class FormSchemaUpdateRequest(BaseModel):
     form_schema: list[Any]
+
+
+class MinimumBudgetUpdateRequest(BaseModel):
+    minimum_budget: int = Field(ge=0)
+
+
+class CurrencyUpdateRequest(BaseModel):
+    currency: str = Field(min_length=3, max_length=3)
 
 
 class PublicPitchFormResponse(BaseModel):

@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routers.health import router as health_router
+from app.api.routers.leads import router as leads_router
 from app.api.routers.onboarding import router as onboarding_router
 from app.api.routers.pitch import router as pitch_router
 from app.config import settings
@@ -19,3 +20,4 @@ app.add_middleware(
 app.include_router(health_router)
 app.include_router(onboarding_router)
 app.include_router(pitch_router)
+app.include_router(leads_router)

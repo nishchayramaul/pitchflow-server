@@ -1,3 +1,4 @@
+import json
 from typing import Any, Optional
 
 from sqlalchemy import text
@@ -9,7 +10,8 @@ def get_user_by_id(db: Session, user_id: str) -> Optional[dict[str, Any]]:
         db.execute(
             text(
                 """
-                SELECT id, email, display_name, slug, avatar_url, tier, role, form_schema, created_at
+                SELECT id, email, display_name, slug, avatar_url, tier, role,
+                       form_schema, minimum_budget, currency, created_at
                 FROM public.users
                 WHERE id = :id
                 LIMIT 1
@@ -85,7 +87,7 @@ def get_user_by_slug(db: Session, slug: str) -> Optional[dict[str, Any]]:
         db.execute(
             text(
                 """
-                SELECT display_name, form_schema
+                SELECT id, display_name, form_schema
                 FROM public.users
                 WHERE slug = :slug
                 LIMIT 1
@@ -99,7 +101,6 @@ def get_user_by_slug(db: Session, slug: str) -> Optional[dict[str, Any]]:
 
 
 def update_form_schema(db: Session, user_id: str, form_schema: list) -> None:
-    import json
     db.execute(
         text(
             """
@@ -109,5 +110,27 @@ def update_form_schema(db: Session, user_id: str, form_schema: list) -> None:
             """
         ),
         {"form_schema": json.dumps(form_schema), "id": user_id},
+    )
+    db.commit()
+
+
+def update_minimum_budget(db: Session, user_id: str, minimum_budget: int) -> None:
+    db.execute(
+        text(
+            """
+            UPDATE public.users
+            SET minimum_budget = :minimum_budget
+            WHERE id = :id
+            """
+        ),
+        {"minimum_budget": minimum_budget, "id": user_id},
+    )
+    db.commit()
+
+
+def update_currency(db: Session, user_id: str, currency: str) -> None:
+    db.execute(
+        text("UPDATE public.users SET currency = :currency WHERE id = :id"),
+        {"currency": currency.upper(), "id": user_id},
     )
     db.commit()
