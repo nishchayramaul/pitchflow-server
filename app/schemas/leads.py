@@ -27,6 +27,8 @@ class LeadsPageResponse(BaseModel):
     page_size: int
     minimum_budget: Optional[int] = None
     currency: Optional[str] = None
+    form_schema: Optional[list[Any]] = None
+    slug: Optional[str] = None
 
 
 class UpdateStatusRequest(BaseModel):

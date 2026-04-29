@@ -12,6 +12,17 @@ from app.schemas.leads import (
     UpdateStatusRequest,
     VALID_STATUS_KEYS,
 )
+from app.services.email_service import send_new_lead_notification
+
+# ISO 4217 → symbol mapping (mirrors client currency.service.ts)
+_CURRENCY_SYMBOL: dict[str, str] = {
+    "USD": "$",  "EUR": "€",  "GBP": "£",  "INR": "₹",  "JPY": "¥",
+    "CAD": "CA$","AUD": "A$", "CHF": "Fr", "CNY": "¥",  "SGD": "S$",
+    "AED": "د.إ","BRL": "R$", "MXN": "MX$","KRW": "₩",  "HKD": "HK$",
+    "SEK": "kr", "NOK": "kr", "NZD": "NZ$","ZAR": "R",  "SAR": "﷼",
+    "MYR": "RM", "THB": "฿",  "IDR": "Rp", "PHP": "₱",  "TRY": "₺",
+    "UAH": "₴",  "NGN": "₦",  "PKR": "₨",  "EGP": "E£", "DKK": "kr",
+}
 
 
 def _coerce_float(val: Any) -> Optional[float]:
@@ -39,6 +50,21 @@ def submit_lead(db: Session, payload: SubmitLeadRequest) -> dict[str, str]:
         budget=budget,
         custom_responses=resp,
     )
+
+    # Notify creator — fire-and-forget, never blocks response
+    creator_email = str(creator.get("email", ""))
+    creator_name = str(creator.get("display_name") or payload.slug)
+    creator_currency = str(creator.get("currency") or "USD")
+    currency_symbol = _CURRENCY_SYMBOL.get(creator_currency, "$")
+    if creator_email:
+        send_new_lead_notification(
+            to_email=creator_email,
+            creator_name=creator_name,
+            brand_name=brand_name or "A brand",
+            budget=budget,
+            currency_symbol=currency_symbol,
+        )
+
     return {"message": "Pitch submitted successfully"}
 
 
@@ -70,6 +96,9 @@ def list_leads(
     profile = get_user_by_id(db, creator_id)
     minimum_budget = profile.get("minimum_budget") if profile else None
     currency = profile.get("currency") if profile else "USD"
+    raw_schema = profile.get("form_schema") if profile else None
+    form_schema = raw_schema if isinstance(raw_schema, list) else None
+    slug = profile.get("slug") if profile else None
 
     items = [
         LeadItem(
@@ -91,6 +120,8 @@ def list_leads(
         page_size=page_size,
         minimum_budget=minimum_budget,
         currency=currency,
+        form_schema=form_schema,
+        slug=slug,
     )
 
 

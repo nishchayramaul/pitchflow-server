@@ -87,7 +87,7 @@ def get_user_by_slug(db: Session, slug: str) -> Optional[dict[str, Any]]:
         db.execute(
             text(
                 """
-                SELECT id, display_name, form_schema
+                SELECT id, email, display_name, form_schema, currency
                 FROM public.users
                 WHERE slug = :slug
                 LIMIT 1

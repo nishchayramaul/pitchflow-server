@@ -13,9 +13,23 @@ class Settings(BaseSettings):
 
     app_name: str = "PitchFlow API"
     frontend_origins: str = "http://localhost:4200"
+    frontend_url: str = "http://localhost:4200"
 
     def get_allowed_origins(self) -> list[str]:
         return [o.strip() for o in self.frontend_origins.split(",") if o.strip()]
+
+    # ── SMTP ──────────────────────────────────────────────
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = ""
+    smtp_from: str = ""          # display "From" address; falls back to smtp_user
+    smtp_use_tls: bool = True    # True = STARTTLS (587) or SMTPS when port=465
+
+    @property
+    def smtp_configured(self) -> bool:
+        return bool(self.smtp_host and self.smtp_user and self.smtp_password)
+
     database_url: str = Field(default="")
     supabase_url: str = ""
     supabase_jwt_audience: str = "authenticated"

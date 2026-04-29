@@ -92,6 +92,37 @@ def get_leads_page(
     return [dict(r) for r in rows], total
 
 
+def get_all_leads(
+    db: Session,
+    creator_id: str,
+    status: Optional[str] = None,
+) -> list[dict[str, Any]]:
+    conditions = ["creator_id = :creator_id"]
+    params: dict[str, Any] = {"creator_id": creator_id}
+
+    if status:
+        conditions.append("status = :status")
+        params["status"] = status
+
+    where = " AND ".join(conditions)
+    rows = (
+        db.execute(
+            text(
+                f"""
+                SELECT id, brand_name, brand_email, budget, custom_responses, status, created_at
+                FROM public.leads
+                WHERE {where}
+                ORDER BY created_at DESC
+                """
+            ),
+            params,
+        )
+        .mappings()
+        .all()
+    )
+    return [dict(r) for r in rows]
+
+
 def set_lead_status(
     db: Session,
     lead_id: str,
